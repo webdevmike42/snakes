@@ -1,0 +1,72 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    font-family: 'Silkscreen', cursive;
+
+}
+
+.wrapper {
+    width: 100vw;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 3fr 7fr;
+}
+
+.infoScreen {
+    background-color: lightskyblue;
+    padding-left: 1vw;
+    padding-right: 1vw;
+}
+
+.playScreen {
+    background-color: darkgrey;
+    display: grid;
+    place-items: center;
+    justify-content: center;
+}
+
+
+h1 {
+    font-size: 3rem;
+    text-align: center;
+    text-decoration: underline;
+    margin-bottom: 7vh;
+}
+
+p {
+    font-size: 2rem;
+}
+
+
+.score {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 2px dashed black;
+    padding-top:4vh;
+}
+
+.spacedBetween{
+    display: flex;
+    justify-content: space-between;
+    
+}
+
+
+button {
+    margin-top: 7vh;
+    width:100%;
+    margin: 7vh 5px 5px 5px;
+    
+}
+
+#canvas-container {
+    border: 1px solid black;
+    box-shadow: 0 0 5px black;
+}
+
+.checkbox{
+    width:4vw;
+    height:4vh;
+}

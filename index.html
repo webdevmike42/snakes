@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="main.js" type="module"></script>
+    <title></title>
+</head>
+
+<body>
+
+    <div class="wrapper">
+
+        <div class="infoScreen">
+
+            <h1>Snakes</h1>
+            <div class="scoreBoard">
+                <div class="score">
+                    <p><input class="checkbox" type="checkbox" disabled checked>Black: </p>
+                    <p id="score0">0</p>
+                </div>
+                <div class="score">
+                    <p><input id="redSnakeEnabled" class="checkbox" type="checkbox">Red: </p>
+                    <p id="score1">0</p>
+                </div>
+            </div>
+
+            <div class="spacedBetween">
+                <button id="start">Start New Game</button>
+                <button id="replay">Watch Replay</button>
+            </div>
+
+            <div class="spacedBetween">
+                <button id="replayPrevStep">Prev Step</button>
+                <button id="replayStartPause">Pause</button>
+                <button id="replayNextStep">Next Step</button>
+            </div>
+        </div>
+        <div class="playScreen">
+            <div id="canvas-container">
+                <canvas id="canvas" width="480" height="480"></canvas>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
