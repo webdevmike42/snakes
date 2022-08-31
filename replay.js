@@ -1,4 +1,4 @@
-const replay = [];
+let replay = [];
 let replayIndex = 0, replayTime = 0;
 let replayPaused = false, replayFinished = false, replayInitialized = false;
 const NullCommands = [{ name: "NULL_COMMAND", execute() { }, undo() { } }];
@@ -12,10 +12,18 @@ export function initReplay() {
     executeFrameCommandsAtIndex(replayIndex++);
 }
 
+export function resetReplay() {
+    replay = [];
+    replayIndex = 0;
+    replayTime = 0;
+    replayPaused = false;
+    replayFinished = false;
+}
+
 function executeFrameCommandsAtIndex(index) {
-    //console.log("executeFrameCommandsAtIndex: " + index);
+    console.log("executeFrameCommandsAtIndex: " + index);
     getFrameCommandsAtIndex(index).forEach(cmd => {
-        //console.log(cmd);
+        console.log(cmd);
         cmd.execute()
     });
 }
@@ -67,7 +75,7 @@ export function updateReplay(timeSinceLastCall) {
 
     replayTime += timeSinceLastCall;
 
-    if(canExecuteCommandsOfNextFrame(replayTime))
+    if (canExecuteCommandsOfNextFrame(replayTime))
         executeNextFrameCommands();
 }
 
@@ -122,6 +130,6 @@ export function logReplay() {
     console.log(replay);
 }
 
-export function isReplayInitialized(){
+export function isReplayInitialized() {
     return replayInitialized;
 }

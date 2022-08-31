@@ -35,8 +35,8 @@ export function draw() {
     }
 }
 
-function clear() {
-    if (_ctx.canvas !== null) {
+export function clear() {
+    if (_ctx !== null && _ctx.canvas !== null) {
         _ctx.fillStyle = backgroundColor;
         _ctx.fillRect(0, 0, _ctx.canvas.width, _ctx.canvas.height);
     }
@@ -58,10 +58,10 @@ export function clearGridSegment(gridCellArray) {
     }
 }
 
-export function getColumnCount(){
+export function getColumnCount() {
     return _colCount;
 }
 
-export function getRowCount(){
+export function getRowCount() {
     return _rowCount;
 }
