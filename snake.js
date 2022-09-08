@@ -1,8 +1,27 @@
 import { gameMaster } from "./main.js";
 import * as gameGridModule from "./gameGrid.js";
+import * as foodModule from "./food.js";
 
 let snakes = [];
 let _id = 0;
+const states = Object.freeze({
+    IDLE: "idle",
+    GROWING: "growing",
+});
+
+export function setIdleState(snakeID) {
+    getSnakeByID(snakeID).state = { type: states.IDLE, value: 0 };
+}
+
+export function setGrowingState(snakeID, growBy) {
+    const snake = getSnakeByID(snakeID);
+    const currentGrowValue = (snake.state.type === states.GROWING
+        ? snake.state.value
+        : 0);
+
+    //adding growBy supports eating food while growing
+    snake.state = { type: states.GROWING, value: (snake.state.value + growBy) };
+}
 
 export function CreateSnakeCommand(col, row, color, inputHandler) {
     return {
@@ -12,12 +31,14 @@ export function CreateSnakeCommand(col, row, color, inputHandler) {
                 id: _id++,
                 body: [{ col: col, row: row }],
                 color: color,
+                state: {},
                 speed: 10,
                 lastRenderTime: 0,
                 score: 0,
                 inputHandler: inputHandler
             };
             snakes.push(newSnake);
+            setIdleState(newSnake.id);
         },
 
         undo() {
@@ -28,15 +49,39 @@ export function CreateSnakeCommand(col, row, color, inputHandler) {
     };
 };
 
+export function getSnakeIDs() {
+    return snakes.map(snake => snake.id);
+}
 
 export function getSnakeByID(snakeID) {
     return snakes.find(snake => snake.id === snakeID);
 }
 
-export function updateSnakes(currentTime) {
+export function updateSnakes(currentTime, food) {
     snakes.forEach(snake => {
         if ((currentTime - snake.lastRenderTime) >= (1000 / snake.speed)) {
+
+            if (snake.state.type === states.GROWING) {
+                if (snake.state.value > 0) {
+                    gameMaster.executeCommand(currentTime, GrowSnakeCommand(snake.id));
+                    snake.state.value--;
+                } else {
+                    setIdleState(snake.id);
+                }
+            }
+
             gameMaster.executeCommand(currentTime, MoveSnakeCommand(snake.id, snake.inputHandler.getNextInput()));
+
+            if (isSnakeEatingFood(snake.id, food.position)) {
+                gameMaster.executeCommand(currentTime, AddScoreCommand(snake.id, food.value));
+                setGrowingState(snake.id, food.value);
+                //gameMaster.executeCommand(currentTime, snakeModule.GrowSnakeCommand(snake.id, food.value));
+                //gameMaster.executeCommand(currentTime, foodModule.EatFoodCommand());
+                gameMaster.executeCommand(currentTime, foodModule.placeFoodAtRandomPosition(3, "green"));
+            }
+
+
+
             snake.lastRenderTime = currentTime;
         }
     });
@@ -47,45 +92,49 @@ export function drawSnakes() {
 }
 
 export function MoveSnakeCommand(snakeID, moveBy) {
-    const snake = getSnakeByID(snakeID);
-
     return {
         name: "MoveSnake",
         execute() {
-            gameGridModule.clearGridSegment(snake.body);
             move(snakeID, moveBy);
-            gameGridModule.drawGridSegment(snake.body, snake.color);
         },
 
         undo() {
-            gameGridModule.clearGridSegment(snake.body);
-            move(snakeID, { x: moveBy.x * -1, y: moveBy.y * -1 });
-            gameGridModule.drawGridSegment(snake.body, snake.color);
+            reverseMove(snakeID, { x: moveBy.x * -1, y: moveBy.y * -1 });
         }
     };
 }
 
-export function getEatingSnake({ col, row }) {
-    const eatingSnakes = snakes.filter(snake => {
-        const head = snake.body[0];
-        return col == head.col && row == head.row;
-    });
+function isSnakeEatingFood(snakeID, foodPosition) {
+    return isOnSnake(snakeID, foodPosition);
+}
 
-    return eatingSnakes.length === 0
-        ? null
-        : eatingSnakes[0];
+function reverseMove(snakeID, inputDirection) {
+    //reverseMove only used for replay
+    if (inputDirection.x == 0 && inputDirection.y == 0) return;
+
+    const snakeBody = getSnakeByID(snakeID).body;
+    const tail = snakeBody[snakeBody.length - 1];
+
+    for (let i = 0; i < snakeBody.length - 1; i++) {
+        snakeBody[i] = { ...snakeBody[i + 1] };
+    }
+
+    tail.col += inputDirection.x;
+    tail.row += inputDirection.y;
 }
 
 function move(snakeID, inputDirection) {
-    const snake = getSnakeByID(snakeID);
-
     if (inputDirection.x == 0 && inputDirection.y == 0) return;
 
-    const newHead = { ...snake.body[0] };
-    newHead.col += inputDirection.x;
-    newHead.row += inputDirection.y;
+    const snake = getSnakeByID(snakeID);
+    const head = snake.body[0];
 
-    snake.body = [newHead, ...snake.body.slice(0, -1)];
+    for (let i = snake.body.length - 1; i > 0; i--) {
+        snake.body[i] = { ...snake.body[i - 1] };
+    }
+
+    head.col += inputDirection.x;
+    head.row += inputDirection.y;
 
     if (isSnakeCollided(snakeID))
         gameMaster.quitGame = true;
@@ -98,14 +147,13 @@ function isSnakeCollided(snakeID) {
 }
 
 export function isOnSnake(snakeID, gridCell, ignoreHead = false) {
-    const snake = getSnakeByID(snakeID);
-    return snake.body.some((part, index) => {
+    return getSnakeByID(snakeID).body.some((part, index) => {
         if (ignoreHead && index === 0) return false;
-        return gridCell.col === part.col && gridCell.row == part.row;
+        return gridCell.col === part.col && gridCell.row === part.row;
     });
 }
 
-export function isOAnySnake(gridCell) {
+export function isOnAnySnake(gridCell) {
     return snakes.reduce((result, snake) => result || isOnSnake(snake.id, gridCell), false);
 }
 
@@ -113,31 +161,25 @@ function getSnakeHeadByID(snakeID) {
     return getSnakeByID(snakeID).body[0];
 }
 
-
-function grow(snakeID, growBy) {
+function grow(snakeID) {
     const snake = getSnakeByID(snakeID);
     const tail = snake.body[snake.body.length - 1];
-    for (let i = 0; i < growBy; i++) {
-        snake.body.push({ x: tail.x, y: tail.y });
-    }
+    snake.body.push({ x: tail.x, y: tail.y });
 }
 
-function shrink(snakeID, shrinkBy) {
-    const snake = getSnakeByID(snakeID);
-    for (let i = 0; i < shrinkBy; i++) {
-        snake.body.pop();
-    }
+function shrink(snakeID) {
+    getSnakeByID(snakeID).body.pop();
 }
 
-export function GrowSnakeCommand(snakeID, growBy) {
+export function GrowSnakeCommand(snakeID) {
     return {
         name: "GrowSnake",
         execute() {
-            grow(snakeID, growBy);
+            grow(snakeID);
         },
 
         undo() {
-            shrink(snakeID, growBy);
+            shrink(snakeID);
         }
     };
 }
@@ -151,15 +193,15 @@ export function logSnakes() {
     console.log(snakes);
 }
 
-export function getSnakeScoreByID(snakeID){
+export function getSnakeScoreByID(snakeID) {
     return getSnakeByID(snakeID).score;
 }
 
-function addScoreToSnake(snakeID, score){
+function addScoreToSnake(snakeID, score) {
     getSnakeByID(snakeID).score += score;
 }
 
-function removeScoreFromSnake(snakeID, score){
+function removeScoreFromSnake(snakeID, score) {
     getSnakeByID(snakeID).score -= score;
 }
 

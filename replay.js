@@ -40,8 +40,14 @@ export function executeNextFrameCommands() {
 }
 
 export function undoCurrentFrameCommands() {
+    let test = getFrameCommandsAtIndex(replayIndex--).reverse();
+    console.log(test);
+    test.forEach(cmd => cmd.undo());
+    replayTime = replay[replayIndex].time;
+    /*
     getFrameCommandsAtIndex(replayIndex--).reverse().forEach(cmd => cmd.undo());
     replayTime = replay[replayIndex].time;
+    */
 }
 
 export function isReplayFinished() {

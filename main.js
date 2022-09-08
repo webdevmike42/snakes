@@ -5,6 +5,7 @@ import * as foodModule from "./food.js";
 import { createInputHandler as createInputHandler } from "./input.js";
 
 export const gameMaster = {
+    isTwoPlayerGame: false,
     quitGame: false,
 
     executeCommand(time, command) {
@@ -18,7 +19,7 @@ const pageLoaded = () => {
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     let startTime = 0, previousTime = -1, timeElapsedSinceLastFrame = 0;
-    let twoPlayerGame = false;
+    let snakeIDs = [];
 
     const score0HTML = document.getElementById("score0");
     const score1HTML = document.getElementById("score1");
@@ -64,29 +65,47 @@ const pageLoaded = () => {
 
 
     function startNewGame() {
-        twoPlayerGame = document.getElementById("redSnakeEnabled").checked;
+        resetGameEnvironment();
+        initGame(document.getElementById("redSnakeEnabled").checked);
+        /*
+        snakeModule.setIdleState(0);
+        snakeModule.logSnakes();
+        snakeModule.setGrowingState(0,3);
+        snakeModule.logSnakes();
+        snakeModule.setShrinkingState(0,5);
+        snakeModule.logSnakes();
+        */
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    function resetGameEnvironment() {
+        gameMaster.isTwoPlayerGame = false;
         previousTime = -1;
         replayModule.resetReplay();
         snakeModule.resetSnakes();
         gameMaster.quitGame = false;
         startTime = -1;
+    }
 
+    function initGame(isTwoPlayerGame) {
+        gameMaster.isTwoPlayerGame = isTwoPlayerGame;
         gameMaster.executeCommand(0, gameGridModule.InitGameGridCommand(20, 20, ctx));
         gameMaster.executeCommand(0, snakeModule.CreateSnakeCommand(0, 0, "black", createInputHandler("w", "a", "s", "d")));
 
-        if (twoPlayerGame)
+        if (isTwoPlayerGame)
             gameMaster.executeCommand(0, snakeModule.CreateSnakeCommand(5, 5, "red", createInputHandler("i", "j", "k", "l")));
 
         gameMaster.executeCommand(0, foodModule.placeFoodAtRandomPosition(3, "green"));
 
-        requestAnimationFrame(gameLoop);
+        snakeIDs = snakeModule.getSnakeIDs();
     }
 
 
     function gameLoop(currentTime) {
-        if(startTime === -1)
-        startTime = currentTime;
-        update(currentTime-startTime);
+        if (startTime === -1)
+            startTime = currentTime;
+        update(currentTime - startTime);
 
         if (gameMaster.quitGame) {
             quitGame();
@@ -98,8 +117,9 @@ const pageLoaded = () => {
     }
 
     function update(currentTime) {
-        snakeModule.updateSnakes(currentTime);
+        snakeModule.updateSnakes(currentTime, foodModule.getFood());
 
+        /*
         const eatingSnake = snakeModule.getEatingSnake(foodModule.getFood());
         if (eatingSnake !== null) {
             const foodValue = foodModule.getFood().value;
@@ -108,6 +128,7 @@ const pageLoaded = () => {
             gameMaster.executeCommand(currentTime, foodModule.EatFoodCommand());
             gameMaster.executeCommand(currentTime, foodModule.placeFoodAtRandomPosition(3, "green"));
         }
+        */
     }
 
     function draw() {
@@ -122,11 +143,11 @@ const pageLoaded = () => {
             previousTime = currentTime;
 
         timeElapsedSinceLastFrame = currentTime - previousTime;
-        console.log(timeElapsedSinceLastFrame);
+
         replayModule.updateReplay(timeElapsedSinceLastFrame);
 
         previousTime = currentTime;
-        
+
         if (!replayModule.isFinished()) {
             draw();
             requestAnimationFrame(replayLoop);
@@ -142,7 +163,7 @@ const pageLoaded = () => {
     function updateHUD() {
 
         score0HTML.textContent = snakeModule.getSnakeScoreByID(0);
-        if (twoPlayerGame)
+        if (gameMaster.isTwoPlayerGame)
             score1HTML.textContent = snakeModule.getSnakeScoreByID(1);
 
         replayButtonHTML.disabled = !gameMaster.quitGame;
