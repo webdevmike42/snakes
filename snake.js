@@ -75,8 +75,6 @@ export function updateSnakes(currentTime, food) {
             if (isSnakeEatingFood(snake.id, food.position)) {
                 gameMaster.executeCommand(currentTime, AddScoreCommand(snake.id, food.value));
                 setGrowingState(snake.id, food.value);
-                //gameMaster.executeCommand(currentTime, snakeModule.GrowSnakeCommand(snake.id, food.value));
-                //gameMaster.executeCommand(currentTime, foodModule.EatFoodCommand());
                 gameMaster.executeCommand(currentTime, foodModule.placeFoodAtRandomPosition(3, "green"));
             }
 
@@ -92,14 +90,32 @@ export function drawSnakes() {
 }
 
 export function MoveSnakeCommand(snakeID, moveBy) {
+    console.log("called movesnakecommand");
+    let backupBody = [];// Array.from(snakes[0].body);
+    for (let i = 0; i < snakes[0].body.length; i++) {
+        backupBody.push({ col: snakes[0].body[i].col, row: snakes[0].body[i].row });
+    }
+
     return {
         name: "MoveSnake",
         execute() {
+            console.log("before move");
+            console.log("backupBody: " + backupBody[0].col + "/" + backupBody[0].row);
             move(snakeID, moveBy);
+            console.log("after move");
+            console.log("backupBody: " + backupBody[0].col + "/" + backupBody[0].row);
+
         },
 
         undo() {
-            reverseMove(snakeID, { x: moveBy.x * -1, y: moveBy.y * -1 });
+            
+            console.log("before undo");
+            //console.log(getSnakeByID(snakeID).body[0].col + "/" + getSnakeByID(snakeID).body[0].row);
+            //reverseMove(snakeID, { x: moveBy.x * -1, y: moveBy.y * -1 });
+            getSnakeByID(snakeID).body = backupBody;
+            console.log("after undo");
+            console.log(getSnakeByID(snakeID).body[0].col + "/" + getSnakeByID(snakeID).body[0].row);
+            
         }
     };
 }

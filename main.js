@@ -89,7 +89,22 @@ const pageLoaded = () => {
             gameMaster.executeCommand(0, snakeModule.CreateSnakeCommand(5, 5, "red", createInputHandler("i", "j", "k", "l")));
 
         gameMaster.executeCommand(0, foodModule.placeFoodAtRandomPosition(3, "green"));
+        /*
+        draw();
+        let cmd = snakeModule.MoveSnakeCommand(0, { x: 1, y: 0 });
+        
+        setTimeout(() => {
+            gameMaster.executeCommand(0, cmd);
+            draw();
+        }, 1000);
+        
 
+        setTimeout(() => {
+            cmd.undo();
+            draw();
+        }, 2000);
+draw();
+*/
         snakeIDs = snakeModule.getSnakeIDs();
     }
 
