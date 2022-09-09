@@ -1,7 +1,8 @@
 let replay = [];
-let replayIndex = 0, replayTime = 0;
+let replayIndex = 0, replayTime = 0, prevFrameTime = 0;
 let replayPaused = false, replayFinished = false, replayInitialized = false;
 const NullCommands = [{ name: "NULL_COMMAND", execute() { }, undo() { } }];
+const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 
 export function initReplay() {
     replayIndex = 0;
@@ -19,6 +20,29 @@ export function resetReplay() {
     replayPaused = false;
     replayFinished = false;
 }
+
+/*
+export function executeReplayLoopFromIndex(index) {
+    replayIndex = clamp(index, 0, replay.length - 1);
+
+    while (!isReplayFinished()) {
+        console.log("executing");
+        setTimeout(() => {
+            executeFrameCommandsAtIndex(replayIndex);
+        },replay[replayIndex+1]?.time || 0);
+        replayIndex++;
+    }
+}
+*/
+
+/*
+function executeFrameCommandsAtCurrentIndex() {
+    getFrameCommandsAtIndex(replayIndex).forEach(cmd => {
+        console.log(cmd);
+        cmd.execute()
+    });
+}
+*/
 
 function executeFrameCommandsAtIndex(index) {
     console.log("executeFrameCommandsAtIndex: " + index);
@@ -125,10 +149,12 @@ function getFrameAtTime(time) {
 
 function createFrameAtTime(currentTime) {
     const newFrame = {
+        deltaTimeToPrevFrame: currentTime - prevFrameTime,
         time: currentTime,
         commands: []
     };
     replay.push(newFrame);
+    prevFrameTime = currentTime;
     return newFrame;
 }
 

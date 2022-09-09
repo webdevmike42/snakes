@@ -38,6 +38,7 @@ const pageLoaded = () => {
         snakeModule.resetSnakes();
         replayModule.initReplay();
         previousTime = -1;
+        //replayModule.executeReplayLoopFromIndex(0);
         requestAnimationFrame(replayLoop);
     });
 
@@ -67,15 +68,6 @@ const pageLoaded = () => {
     function startNewGame() {
         resetGameEnvironment();
         initGame(document.getElementById("redSnakeEnabled").checked);
-        /*
-        snakeModule.setIdleState(0);
-        snakeModule.logSnakes();
-        snakeModule.setGrowingState(0,3);
-        snakeModule.logSnakes();
-        snakeModule.setShrinkingState(0,5);
-        snakeModule.logSnakes();
-        */
-
         requestAnimationFrame(gameLoop);
     }
 
@@ -118,17 +110,6 @@ const pageLoaded = () => {
 
     function update(currentTime) {
         snakeModule.updateSnakes(currentTime, foodModule.getFood());
-
-        /*
-        const eatingSnake = snakeModule.getEatingSnake(foodModule.getFood());
-        if (eatingSnake !== null) {
-            const foodValue = foodModule.getFood().value;
-            gameMaster.executeCommand(currentTime, snakeModule.AddScoreCommand(eatingSnake.id, foodValue));
-            gameMaster.executeCommand(currentTime, snakeModule.GrowSnakeCommand(eatingSnake.id, foodValue));
-            gameMaster.executeCommand(currentTime, foodModule.EatFoodCommand());
-            gameMaster.executeCommand(currentTime, foodModule.placeFoodAtRandomPosition(3, "green"));
-        }
-        */
     }
 
     function draw() {

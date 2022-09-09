@@ -1,24 +1,34 @@
 import * as gameGridModule from "./gameGrid.js";
 import * as snakeModule from "./snake.js";
 
-const NullFood = Object.freeze({ position: {col: -1, row: -1}, value: 0, color: "" });
-let food = {...NullFood};
+const NullFood = Object.freeze({ position: Object.freeze({ col: -1, row: -1 }), value: 0, color: "" });
+let food = NullFood;
 
 export function PlaceFoodCommand(col, row, value, color) {
-    const backupFood = {...food};
+    const backupFood = food;
     return {
         name: "Place Food",
         execute() {
-            food.position.col = col;
-            food.position.row = row;
-            food.value = value;
-            food.color = color;
+            food = createFood(col, row, value, color);
+            console.log(food);
+            console.log(backupFood);
         },
 
         undo() {
-            food = {...backupFood};
+            food = backupFood;
         }
     }
+}
+
+function createFood(col, row, value, color) {
+    return {
+        position: {
+            col: col,
+            row: row
+        },
+        value: value,
+        color: color
+    };
 }
 
 /*
@@ -53,7 +63,9 @@ export function placeFoodAtRandomPosition(value, color) {
 
 
 export function drawFood() {
-    gameGridModule.drawGridSegment([food.position], food.color);
+    if (food != NullFood) {
+        gameGridModule.drawGridSegment([food.position], food.color);
+    }
 }
 
 export function getFood() {
